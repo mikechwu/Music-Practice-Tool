@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Music Practice Tool</title>
   <style>
-    /************************************************************
-     * GLOBAL BASE STYLES
-     ************************************************************/
+    /* ========== Basic Reset & Body ========== */
     * {
       box-sizing: border-box;
-      margin: 0;
+      margin: 0; 
       padding: 0;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Open Sans", sans-serif;
       background: #f5f5f5;
       color: #333;
-      margin: 0;
       padding: 1rem;
       line-height: 1.4;
     }
@@ -31,21 +27,20 @@
     .container {
       max-width: 900px;
       margin: 0 auto;
-      padding: 1rem;
       background: #fff;
       border: 1px solid #ccc;
       border-radius: 8px;
+      padding: 1rem;
     }
 
-    /************************************************************
-     * CONTROLS AREA
-     ************************************************************/
-    .controls {
+    /* ========== Top Controls ========== */
+    .top-controls {
       display: flex;
       flex-wrap: wrap;
       gap: 1rem;
       margin-bottom: 1rem;
       align-items: flex-end;
+      justify-content: space-between;
     }
     .control-group {
       display: flex;
@@ -54,9 +49,8 @@
     label {
       font-weight: 600;
       margin-bottom: 0.3rem;
-      font-size: 0.95rem;
     }
-    input[type="number"], select {
+    input[type="number"] {
       padding: 0.4rem;
       font-size: 1rem;
       border: 1px solid #ccc;
@@ -83,193 +77,153 @@
       cursor: not-allowed;
     }
 
-    /************************************************************
-     * TABLE FOR NOTE ROWS
-     ************************************************************/
-    .table-wrapper {
-      width: 100%;
-      overflow-x: auto; /* scroll horizontally on small screens */
-      margin-bottom: 1rem;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 600px; /* so mobile can scroll horizontally if needed */
-    }
-    th, td {
-      text-align: left;
-      padding: 0.6rem;
-      border-bottom: 1px solid #ccc;
-      vertical-align: middle;
-      font-size: 0.95rem;
-    }
-    th {
-      background: #f7f7f7;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-
-    /************************************************************
-     * NOTES DISPLAY
-     ************************************************************/
-    .notes-display {
-      margin-top: 1rem;
-      padding: 1rem;
+    /* ========== Notes Container & Blocks ========== */
+    .notes-container {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 1rem;
       background: #fafafa;
       border: 1px dashed #ccc;
       border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
       justify-content: center;
-    }
-    .notes-display-title {
-      width: 100%;
-      text-align: center;
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-    .note-item {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      border: 1px solid #ccc;
-      background-color: #eee;
-      color: #333;
-      border-radius: 4px;
-      position: relative;
-      font-weight: 600;
-      transition: transform 0.2s;
-      margin: 2px;
-      height: 50px;
-      padding: 0 0.5rem;
-      overflow: hidden; /* so we can clip the progress bar inside */
-    }
-    .note-index {
-      position: absolute;
-      top: 4px;
-      right: 6px;
-      font-size: 0.7rem;
-      color: #666;
-    }
-    /* Visual widths for note durations (optional) */
-    .note-item.whole {
-      min-width: 160px;
-    }
-    .note-item.half {
-      min-width: 80px;
-    }
-    .note-item.quarter {
-      min-width: 40px;
-    }
-    .note-item.eighth {
-      min-width: 30px;
-    }
-    .note-item.sixteenth {
-      min-width: 20px;
     }
 
-    /* The progress overlay that animates from left to right */
+    .note-block {
+      position: relative;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      width: 140px;
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+      overflow: hidden;
+    }
     .note-progress {
       position: absolute;
-      top: 0;
-      left: 0;
+      top: 0; 
+      left: 0; 
       width: 0%;
       height: 100%;
       background: linear-gradient(to right, rgba(52,152,219,0.2), rgba(52,152,219,0.5));
-      /* Or use a single color with slight transparency:
-         background: rgba(52,152,219,0.3); */
       pointer-events: none;
+      transition: width 0ms linear; /* We'll set a custom duration dynamically */
+    }
+    .note-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.3rem;
+    }
+    .note-index {
+      font-weight: 600;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #e74c3c;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .remove-btn:hover {
+      color: #c0392b;
+    }
+    .pitch-input, .note-type-select {
+      width: 100%;
+      margin-bottom: 0.3rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+      padding: 0.3rem;
+      background: #fff;
     }
 
-    /************************************************************
-     * MEDIA QUERIES
-     ************************************************************/
-    @media (max-width: 768px) {
-      .container {
-        padding: 0.8rem;
-      }
-      h1 {
-        font-size: 1.2rem;
-      }
-      .controls {
-        flex-direction: column;
-      }
-      label {
-        font-size: 0.9rem;
-      }
-      .btn {
-        width: 100%;
-      }
-      table {
-        min-width: 500px;
-      }
+    .active {
+      outline: 2px solid #3498db;
+      outline-offset: -2px;
     }
 
-    @media (max-width: 480px) {
-      table {
-        min-width: 420px;
+    /* + button to add a new note block */
+    .add-note-btn {
+      background: none;
+      border: 2px dashed #3498db;
+      color: #3498db;
+      border-radius: 6px;
+      width: 140px;
+      height: 60px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .add-note-btn:hover {
+      background: rgba(52,152,219,0.1);
+    }
+
+    /* ========== Optional Settings (Key Signature) ========== */
+    .optional-settings {
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .optional-settings label {
+      font-weight: normal;
+    }
+    .optional-settings select {
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 0.3rem;
+      margin-left: 0.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .note-block {
+        width: 120px;
       }
-      th, td {
-        font-size: 0.88rem;
-      }
-      .note-item {
-        height: 45px;
-        font-size: 0.9rem;
+      .add-note-btn {
+        width: 120px;
+        font-size: 1.3rem;
       }
     }
   </style>
 </head>
 <body>
   <h1>Music Practice Tool</h1>
+
   <div class="container">
-    <!-- ======== Top Controls ======== -->
-    <div class="controls">
-      <div class="control-group">
-        <label for="keySignature">Key Signature</label>
-        <select id="keySignature">
-          <option value="C">C Major</option>
-          <option value="D" selected>D Major</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label for="numNotes">Number of Notes</label>
-        <input type="number" id="numNotes" min="1" max="64" value="8" />
-      </div>
+    <!-- ======== TOP CONTROLS ======== -->
+    <div class="top-controls">
       <div class="control-group">
         <label for="bpm">BPM</label>
         <input type="number" id="bpm" min="30" max="300" value="60" />
       </div>
-      <div class="control-group">
-        <button class="btn" id="createNotesBtn">Create Note Rows</button>
+      <div>
+        <button class="btn" id="startBtn">Start</button>
+        <button class="btn" id="stopBtn" disabled>Stop</button>
       </div>
     </div>
 
-    <!-- ======== Table of Notes ======== -->
-    <div class="table-wrapper">
-      <table id="notesTable" style="display: none;">
-        <thead>
-          <tr>
-            <th>Index</th>
-            <th>Pitch</th>
-            <th>Note Type</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <!-- ======== NOTES CONTAINER (BLOCKS) ======== -->
+    <div class="notes-container" id="notesContainer">
+      <!-- 8 default blocks + a plus (+) block appended on page load -->
     </div>
 
-    <!-- ======== Start/Stop Buttons ======== -->
-    <div class="controls">
-      <button class="btn" id="startBtn" disabled>Start</button>
-      <button class="btn" id="stopBtn" disabled>Stop</button>
-    </div>
-
-    <!-- ======== Main Notes Display ======== -->
-    <div class="notes-display" id="notesDisplay">
-      <div class="notes-display-title">Note Sequence</div>
+    <!-- ======== OPTIONAL: Key Signature ======== -->
+    <div class="optional-settings">
+      <label for="keySignature">Key Signature (optional):</label>
+      <select id="keySignature">
+        <option value="C">C Major</option>
+        <option value="D" selected>D Major</option>
+      </select>
     </div>
   </div>
 
@@ -279,54 +233,33 @@
      ************************************************************/
     let audioContext = null;
     let isPlaying = false;
-    let notesData = [];    // Array of { pitch, type, el }
-    let timeouts = [];     // For clearing scheduled tasks
+    let timeouts = [];      // For clearing scheduled tasks
+    let notesArray = [];    // Each element: { pitch, type, blockEl }
 
-    // Basic scales
-    const scales = {
-      "C": ["C", "D", "E", "F", "G", "A", "B"],
-      "D": ["D", "E", "F", "G", "A", "B", "C"]
-    };
+    // Default Canon in D cello line 
+    const defaultNotes = ["D", "A", "B", "F#", "G", "D", "G", "A"];
 
-    // Canon in D cello line
-    const canonDCelloLine = ["D", "A", "B", "F#", "G", "D", "G", "A"];
+    // We'll store a reference to the + add button
+    let addBtn = null;
 
     /************************************************************
-     * UTILITY: KEY SIGNATURE
+     * GET NOTE DURATION (MS) FROM TYPE + BPM
      ************************************************************/
-    function applyKeySignature(note, key) {
-      if (key === "D") {
-        if (note === "F") return "F#";
-        if (note === "C") return "C#";
-      }
-      return note;
-    }
-
-    /************************************************************
-     * UTILITY: NOTE TYPE -> DURATION (IN BEATS)
-     ************************************************************/
-    function getDurationInBeats(noteType) {
+    function getDurationMs(noteType, bpm) {
+      let beats = 1; // quarter
       switch (noteType) {
-        case "whole":     return 4;
-        case "half":      return 2;
-        case "quarter":   return 1;
-        case "eighth":    return 0.5;
-        case "sixteenth": return 0.25;
-        default:          return 1;
+        case "whole":     beats = 4; break;
+        case "half":      beats = 2; break;
+        case "quarter":   beats = 1; break;
+        case "eighth":    beats = 0.5; break;
+        case "sixteenth": beats = 0.25; break;
       }
-    }
-
-    /************************************************************
-     * UTILITY: NOTE TYPE + BPM -> MILLIS
-     ************************************************************/
-    function getNoteDurationMs(noteType, bpm) {
-      const beats = getDurationInBeats(noteType);
       const msPerQuarter = (60 / bpm) * 1000;
       return beats * msPerQuarter;
     }
 
     /************************************************************
-     * METRONOME CLICK
+     * SIMPLE CLICK SOUND
      ************************************************************/
     function playClick() {
       if (!audioContext) {
@@ -343,253 +276,215 @@
     }
 
     /************************************************************
-     * START PRACTICE (LOOP)
+     * CREATE A NOTE BLOCK
+     ************************************************************/
+    function createNoteBlock(pitch, noteType) {
+      const block = document.createElement("div");
+      block.classList.add("note-block");
+
+      // The progress overlay
+      const progress = document.createElement("div");
+      progress.className = "note-progress";
+      block.appendChild(progress);
+
+      // Header row: index label + remove button
+      const header = document.createElement("div");
+      header.classList.add("note-block-header");
+      const idxSpan = document.createElement("span");
+      idxSpan.className = "note-index";
+      idxSpan.textContent = "?" ;  // We'll fill real index later
+      header.appendChild(idxSpan);
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "remove-btn";
+      removeBtn.innerHTML = "&#x2212;";
+      removeBtn.title = "Remove this note";
+      removeBtn.addEventListener("click", () => removeNoteBlock(block));
+      header.appendChild(removeBtn);
+
+      block.appendChild(header);
+
+      // Pitch input
+      const pitchInput = document.createElement("input");
+      pitchInput.type = "text";
+      pitchInput.className = "pitch-input";
+      pitchInput.value = pitch;
+      block.appendChild(pitchInput);
+
+      // Note Type select
+      const typeSelect = document.createElement("select");
+      typeSelect.className = "note-type-select";
+      const noteTypes = ["whole","half","quarter","eighth","sixteenth"];
+      noteTypes.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t[0].toUpperCase() + t.slice(1);
+        if (t === noteType) opt.selected = true;
+        typeSelect.appendChild(opt);
+      });
+      block.appendChild(typeSelect);
+
+      return block;
+    }
+
+    /************************************************************
+     * ADD NOTE BLOCK
+     * Insert before the + button
+     ************************************************************/
+    function addNoteBlock(pitch="C", noteType="quarter") {
+      const notesContainer = document.getElementById("notesContainer");
+      const newBlock = createNoteBlock(pitch, noteType);
+      notesContainer.insertBefore(newBlock, addBtn);
+      reindexBlocks();
+    }
+
+    /************************************************************
+     * REMOVE NOTE BLOCK
+     ************************************************************/
+    function removeNoteBlock(blockEl) {
+      if (isPlaying) return; // optional: disallow removal during playback
+      const notesContainer = document.getElementById("notesContainer");
+      notesContainer.removeChild(blockEl);
+      reindexBlocks();
+    }
+
+    /************************************************************
+     * RE-INDEX BLOCKS FROM LEFT TO RIGHT
+     * So they are always 1..N in order.
+     ************************************************************/
+    function reindexBlocks() {
+      const notesContainer = document.getElementById("notesContainer");
+      const blocks = notesContainer.querySelectorAll(".note-block");
+      blocks.forEach((block, i) => {
+        const idxSpan = block.querySelector(".note-index");
+        idxSpan.textContent = i + 1;
+      });
+    }
+
+    /************************************************************
+     * GATHER NOTES (pitch, type) FROM BLOCKS
+     ************************************************************/
+    function gatherNotes() {
+      const blocks = document.querySelectorAll(".note-block");
+      const arr = [];
+      blocks.forEach(block => {
+        const pitchInput = block.querySelector(".pitch-input");
+        const typeSelect = block.querySelector(".note-type-select");
+        arr.push({
+          pitch: pitchInput.value.trim(),
+          type: typeSelect.value,
+          blockEl: block
+        });
+      });
+      return arr;
+    }
+
+    /************************************************************
+     * START PRACTICE
      ************************************************************/
     function startPractice() {
-      if (notesData.length === 0) return;
-      isPlaying = true;
+      if (isPlaying) return;
+      notesArray = gatherNotes();
+      if (notesArray.length === 0) return;
 
+      isPlaying = true;
       document.getElementById("startBtn").disabled = true;
       document.getElementById("stopBtn").disabled = false;
-
-      // Clear old highlights/timeouts
-      notesData.forEach((nd) => nd.el.classList.remove("active"));
-      timeouts.forEach((t) => clearTimeout(t));
+      timeouts.forEach(t => clearTimeout(t));
       timeouts = [];
 
       scheduleNextNote(0);
     }
 
-    /************************************************************
-     * LOOP THROUGH NOTES CONTINUOUSLY
-     ************************************************************/
     function scheduleNextNote(index) {
       if (!isPlaying) return;
-      const noteInfo = notesData[index];
+      const currentNote = notesArray[index];
 
-      // Play the note + animate
-      highlightNote(noteInfo);
+      highlightNote(currentNote);
 
-      // Duration
-      const bpm = parseInt(document.getElementById("bpm").value, 10);
-      const noteDurationMs = getNoteDurationMs(noteInfo.type, bpm);
+      const bpm = parseInt(document.getElementById("bpm").value, 10) || 60;
+      const durationMs = getDurationMs(currentNote.type, bpm);
 
-      // Unhighlight near the end
-      const unhighlightTimeout = setTimeout(() => {
-        unhighlightNote(noteInfo);
-      }, noteDurationMs * 0.9);
+      const unhighlightTime = setTimeout(() => {
+        unhighlightNote(currentNote);
+      }, durationMs * 0.9);
 
-      // Next note
-      const nextTimeout = setTimeout(() => {
-        const nextIndex = (index + 1) % notesData.length;
+      const nextTime = setTimeout(() => {
+        const nextIndex = (index + 1) % notesArray.length;
         scheduleNextNote(nextIndex);
-      }, noteDurationMs);
+      }, durationMs);
 
-      timeouts.push(unhighlightTimeout, nextTimeout);
+      timeouts.push(unhighlightTime, nextTime);
     }
 
-    function highlightNote(noteInfo) {
-      const el = noteInfo.el;
-      el.classList.add("active");
+    function highlightNote(noteObj) {
+      noteObj.blockEl.classList.add("active");
       playClick();
+      // progress overlay
+      const progDiv = noteObj.blockEl.querySelector(".note-progress");
+      progDiv.style.width = "0%";
+      progDiv.style.transition = "none";
+      progDiv.getBoundingClientRect(); // force reflow
 
-      // Create a progress overlay for the duration
-      const progressBar = document.createElement("div");
-      progressBar.className = "note-progress";
-      el.appendChild(progressBar);
+      const bpm = parseInt(document.getElementById("bpm").value, 10) || 60;
+      const durationMs = getDurationMs(noteObj.type, bpm);
 
-      // Force reflow so CSS transition will restart properly
-      progressBar.getBoundingClientRect();
-
-      // Animate from 0% to 100% over note duration
-      const bpm = parseInt(document.getElementById("bpm").value, 10);
-      const noteDurationMs = getNoteDurationMs(noteInfo.type, bpm);
-      progressBar.style.transition = `width ${noteDurationMs}ms linear`;
-      progressBar.style.width = "100%";
+      progDiv.style.transition = `width ${durationMs}ms linear`;
+      progDiv.style.width = "100%";
     }
 
-    function unhighlightNote(noteInfo) {
-      const el = noteInfo.el;
-      el.classList.remove("active");
-
-      // Remove the progress bar
-      const progressBar = el.querySelector(".note-progress");
-      if (progressBar) {
-        el.removeChild(progressBar);
-      }
+    function unhighlightNote(noteObj) {
+      noteObj.blockEl.classList.remove("active");
+      const progDiv = noteObj.blockEl.querySelector(".note-progress");
+      progDiv.style.width = "0%";
+      progDiv.style.transition = "none";
     }
 
     /************************************************************
      * STOP PRACTICE
      ************************************************************/
     function stopPractice() {
+      if (!isPlaying) return;
       isPlaying = false;
       document.getElementById("startBtn").disabled = false;
       document.getElementById("stopBtn").disabled = true;
-
-      timeouts.forEach((t) => clearTimeout(t));
+      timeouts.forEach(t => clearTimeout(t));
       timeouts = [];
 
-      notesData.forEach((nd) => {
-        nd.el.classList.remove("active");
-        // Remove progress bars if any remain
-        const pb = nd.el.querySelector(".note-progress");
-        if (pb) nd.el.removeChild(pb);
+      // reset progress & highlight
+      notesArray.forEach(n => {
+        n.blockEl.classList.remove("active");
+        const p = n.blockEl.querySelector(".note-progress");
+        p.style.width = "0%";
+        p.style.transition = "none";
       });
     }
 
     /************************************************************
-     * CREATE NOTE ROWS
-     * - If user hasn't changed anything: default 8 half notes
-     *   with the Canon in D pattern
+     * ON PAGE LOAD: CREATE 8 DEFAULT BLOCKS & + BUTTON
      ************************************************************/
-    function createNoteRows() {
-      stopPractice();
-      notesData = [];
+    window.onload = () => {
+      const notesContainer = document.getElementById("notesContainer");
 
-      const table = document.getElementById("notesTable");
-      const tbody = table.querySelector("tbody");
-      tbody.innerHTML = "";
-      table.style.display = "none";
-
-      const key = document.getElementById("keySignature").value;
-      const numNotes = parseInt(document.getElementById("numNotes").value, 10) || 8;
-      const defaultKeyIsD = (key === "D");
-      const defaultNumIs8 = (numNotes === 8);
-
-      // Show the table
-      table.style.display = "table";
-
-      // If user left it at Key = D, Number of Notes = 8, fill in Canon automatically
-      if (defaultKeyIsD && defaultNumIs8) {
-        for (let i = 0; i < 8; i++) {
-          const row = document.createElement("tr");
-
-          // Index
-          const indexCell = document.createElement("td");
-          indexCell.textContent = i + 1;
-          row.appendChild(indexCell);
-
-          // Pitch
-          const pitchCell = document.createElement("td");
-          const pitchInput = document.createElement("input");
-          pitchInput.type = "text";
-          pitchInput.value = canonDCelloLine[i];
-          pitchInput.style.width = "80px";
-          pitchCell.appendChild(pitchInput);
-          row.appendChild(pitchCell);
-
-          // Note type (default = half)
-          const typeCell = document.createElement("td");
-          const typeSelect = document.createElement("select");
-          ["whole", "half", "quarter", "eighth", "sixteenth"].forEach((t) => {
-            const opt = document.createElement("option");
-            opt.value = t;
-            opt.textContent = t[0].toUpperCase() + t.slice(1);
-            if (t === "half") opt.selected = true;
-            typeSelect.appendChild(opt);
-          });
-          typeCell.appendChild(typeSelect);
-          row.appendChild(typeCell);
-
-          tbody.appendChild(row);
-        }
-      } else {
-        // Otherwise, create generic rows from the chosen key signature
-        const baseScale = scales[key] || [];
-        for (let i = 0; i < numNotes; i++) {
-          const row = document.createElement("tr");
-
-          // Index
-          const indexCell = document.createElement("td");
-          indexCell.textContent = i + 1;
-          row.appendChild(indexCell);
-
-          // Pitch (input field)
-          const pitchCell = document.createElement("td");
-          const pitchInput = document.createElement("input");
-          pitchInput.type = "text";
-          pitchInput.value = applyKeySignature(baseScale[0] || "C", key);
-          pitchInput.style.width = "80px";
-          pitchCell.appendChild(pitchInput);
-          row.appendChild(pitchCell);
-
-          // Note Type (default = half)
-          const typeCell = document.createElement("td");
-          const typeSelect = document.createElement("select");
-          ["whole", "half", "quarter", "eighth", "sixteenth"].forEach((t) => {
-            const opt = document.createElement("option");
-            opt.value = t;
-            opt.textContent = t[0].toUpperCase() + t.slice(1);
-            if (t === "half") opt.selected = true;
-            typeSelect.appendChild(opt);
-          });
-          typeCell.appendChild(typeSelect);
-          row.appendChild(typeCell);
-
-          tbody.appendChild(row);
-        }
+      // Create 8 blocks (Canon in D) all quarter notes by default
+      for (let i = 0; i < 8; i++) {
+        addNoteBlock(defaultNotes[i], "quarter");
       }
 
-      // Enable Start
-      document.getElementById("startBtn").disabled = false;
-    }
-
-    /************************************************************
-     * GATHER NOTES DATA
-     ************************************************************/
-    function gatherNotesData() {
-      stopPractice();
-
-      const table = document.getElementById("notesTable");
-      if (table.style.display === "none") return;
-
-      const rows = table.querySelectorAll("tbody tr");
-      const displayEl = document.getElementById("notesDisplay");
-      displayEl.innerHTML = '<div class="notes-display-title">Note Sequence</div>';
-
-      rows.forEach((row, i) => {
-        const pitchInput = row.cells[1].querySelector("input");
-        const typeSelect = row.cells[2].querySelector("select");
-
-        const pitch = pitchInput.value.trim();
-        const noteType = typeSelect.value;
-
-        // Create the visual note element
-        const noteDiv = document.createElement("div");
-        noteDiv.classList.add("note-item", noteType);
-        noteDiv.textContent = pitch;
-
-        // Index overlay
-        const idxSpan = document.createElement("span");
-        idxSpan.className = "note-index";
-        idxSpan.textContent = i + 1;
-        noteDiv.appendChild(idxSpan);
-
-        displayEl.appendChild(noteDiv);
-
-        notesData.push({
-          pitch: pitch,
-          type: noteType,
-          el: noteDiv
-        });
+      // Create the + button
+      addBtn = document.createElement("button");
+      addBtn.className = "add-note-btn";
+      addBtn.innerHTML = "+";
+      addBtn.title = "Add new note";
+      addBtn.addEventListener("click", () => {
+        addNoteBlock("C", "quarter");
       });
-    }
+      notesContainer.appendChild(addBtn);
 
-    /************************************************************
-     * EVENT LISTENERS
-     ************************************************************/
-    document.getElementById("createNotesBtn").addEventListener("click", () => {
-      createNoteRows();
-    });
-    document.getElementById("startBtn").addEventListener("click", () => {
-      gatherNotesData();
-      if (notesData.length === 0) return;
-      startPractice();
-    });
-    document.getElementById("stopBtn").addEventListener("click", () => {
-      stopPractice();
-    });
+      // Hook up Start/Stop
+      document.getElementById("startBtn").addEventListener("click", startPractice);
+      document.getElementById("stopBtn").addEventListener("click", stopPractice);
+    };
   </script>
 </body>
 </html>
