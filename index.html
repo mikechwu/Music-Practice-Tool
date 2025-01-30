@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Music Practice Tool (Responsive)</title>
+  <title>Music Practice Tool</title>
   <style>
     /************************************************************
      * GLOBAL BASE STYLES
@@ -141,10 +141,11 @@
       border-radius: 4px;
       position: relative;
       font-weight: 600;
-      transition: background-color 0.2s, transform 0.2s;
+      transition: transform 0.2s;
       margin: 2px;
       height: 50px;
       padding: 0 0.5rem;
+      overflow: hidden; /* so we can clip the progress bar inside */
     }
     .note-index {
       position: absolute;
@@ -169,10 +170,18 @@
     .note-item.sixteenth {
       min-width: 20px;
     }
-    .note-item.active {
-      background-color: #a2d2ff;
-      border-color: #3498db;
-      transform: scale(1.05);
+
+    /* The progress overlay that animates from left to right */
+    .note-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(to right, rgba(52,152,219,0.2), rgba(52,152,219,0.5));
+      /* Or use a single color with slight transparency:
+         background: rgba(52,152,219,0.3); */
+      pointer-events: none;
     }
 
     /************************************************************
@@ -214,7 +223,7 @@
   </style>
 </head>
 <body>
-  <h1>Music Practice Tool (Responsive)</h1>
+  <h1>Music Practice Tool</h1>
   <div class="container">
     <!-- ======== Top Controls ======== -->
     <div class="controls">
@@ -272,7 +281,6 @@
     let isPlaying = false;
     let notesData = [];    // Array of { pitch, type, el }
     let timeouts = [];     // For clearing scheduled tasks
-    let currentNoteIndex = 0;
 
     // Basic scales
     const scales = {
@@ -340,7 +348,6 @@
     function startPractice() {
       if (notesData.length === 0) return;
       isPlaying = true;
-      currentNoteIndex = 0;
 
       document.getElementById("startBtn").disabled = true;
       document.getElementById("stopBtn").disabled = false;
@@ -350,7 +357,7 @@
       timeouts.forEach((t) => clearTimeout(t));
       timeouts = [];
 
-      scheduleNextNote(currentNoteIndex);
+      scheduleNextNote(0);
     }
 
     /************************************************************
@@ -360,20 +367,19 @@
       if (!isPlaying) return;
       const noteInfo = notesData[index];
 
-      // Highlight, play click
-      highlightNote(noteInfo.el);
-      playClick();
+      // Play the note + animate
+      highlightNote(noteInfo);
 
-      // Figure out how long this note lasts
+      // Duration
       const bpm = parseInt(document.getElementById("bpm").value, 10);
       const noteDurationMs = getNoteDurationMs(noteInfo.type, bpm);
 
       // Unhighlight near the end
       const unhighlightTimeout = setTimeout(() => {
-        unhighlightNote(noteInfo.el);
-      }, noteDurationMs * 0.8);
+        unhighlightNote(noteInfo);
+      }, noteDurationMs * 0.9);
 
-      // Go to next note after the full duration
+      // Next note
       const nextTimeout = setTimeout(() => {
         const nextIndex = (index + 1) % notesData.length;
         scheduleNextNote(nextIndex);
@@ -382,11 +388,35 @@
       timeouts.push(unhighlightTimeout, nextTimeout);
     }
 
-    function highlightNote(element) {
-      element.classList.add("active");
+    function highlightNote(noteInfo) {
+      const el = noteInfo.el;
+      el.classList.add("active");
+      playClick();
+
+      // Create a progress overlay for the duration
+      const progressBar = document.createElement("div");
+      progressBar.className = "note-progress";
+      el.appendChild(progressBar);
+
+      // Force reflow so CSS transition will restart properly
+      progressBar.getBoundingClientRect();
+
+      // Animate from 0% to 100% over note duration
+      const bpm = parseInt(document.getElementById("bpm").value, 10);
+      const noteDurationMs = getNoteDurationMs(noteInfo.type, bpm);
+      progressBar.style.transition = `width ${noteDurationMs}ms linear`;
+      progressBar.style.width = "100%";
     }
-    function unhighlightNote(element) {
-      element.classList.remove("active");
+
+    function unhighlightNote(noteInfo) {
+      const el = noteInfo.el;
+      el.classList.remove("active");
+
+      // Remove the progress bar
+      const progressBar = el.querySelector(".note-progress");
+      if (progressBar) {
+        el.removeChild(progressBar);
+      }
     }
 
     /************************************************************
@@ -400,8 +430,12 @@
       timeouts.forEach((t) => clearTimeout(t));
       timeouts = [];
 
-      notesData.forEach((nd) => nd.el.classList.remove("active"));
-      currentNoteIndex = 0;
+      notesData.forEach((nd) => {
+        nd.el.classList.remove("active");
+        // Remove progress bars if any remain
+        const pb = nd.el.querySelector(".note-progress");
+        if (pb) nd.el.removeChild(pb);
+      });
     }
 
     /************************************************************
@@ -461,7 +495,7 @@
           tbody.appendChild(row);
         }
       } else {
-        // Otherwise, create blank rows from the chosen key signature
+        // Otherwise, create generic rows from the chosen key signature
         const baseScale = scales[key] || [];
         for (let i = 0; i < numNotes; i++) {
           const row = document.createElement("tr");
@@ -471,7 +505,7 @@
           indexCell.textContent = i + 1;
           row.appendChild(indexCell);
 
-          // Pitch (input for direct typing + scale suggestion)
+          // Pitch (input field)
           const pitchCell = document.createElement("td");
           const pitchInput = document.createElement("input");
           pitchInput.type = "text";
@@ -514,7 +548,6 @@
       const displayEl = document.getElementById("notesDisplay");
       displayEl.innerHTML = '<div class="notes-display-title">Note Sequence</div>';
 
-      notesData = [];
       rows.forEach((row, i) => {
         const pitchInput = row.cells[1].querySelector("input");
         const typeSelect = row.cells[2].querySelector("select");
