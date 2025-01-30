@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Music Practice Tool</title>
+  <style>
+    /* ======== Basic Reset & Body ======== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      margin: 0;
+      padding: 1rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    /* ======== Controls ======== */
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      align-items: flex-end;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    select,
+    input[type="number"],
+    input[type="text"] {
+      padding: 0.4rem;
+      font-size: 1rem;
+    }
+    .btn {
+      background-color: #3498db;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      margin-top: 0.3rem;
+      min-width: 80px;
+      text-align: center;
+    }
+    .btn:hover:enabled {
+      background-color: #2980b9;
+    }
+    .btn:disabled {
+      background-color: #bdc3c7;
+      cursor: not-allowed;
+    }
+
+    /* ======== Notes Table ======== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    th,
+    td {
+      text-align: left;
+      padding: 0.5rem;
+      border-bottom: 1px solid #ccc;
+      vertical-align: middle;
+    }
+    th {
+      background: #f7f7f7;
+      font-weight: 600;
+    }
+
+    /* ======== Main Notes Display ======== */
+    .notes-display {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      padding: 1rem;
+      background: #f9f9f9;
+      border: 1px dashed #ccc;
+      border-radius: 6px;
+    }
+    .notes-display-title {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      width: 100%;
+    }
+
+    /* Each Note Item */
+    .note-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border: 1px solid #ccc;
+      background-color: #eee;
+      color: #333;
+      border-radius: 4px;
+      position: relative;
+      font-weight: 600;
+      transition: background-color 0.2s, transform 0.2s;
+      height: 60px;
+      margin: 2px;
+    }
+    .note-index {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 0.7rem;
+      color: #666;
+    }
+    .note-item.whole {
+      width: 240px;
+    }
+    .note-item.half {
+      width: 120px;
+    }
+    .note-item.quarter {
+      width: 60px;
+    }
+    .note-item.eighth {
+      width: 30px;
+    }
+    .note-item.sixteenth {
+      width: 15px;
+    }
+
+    /* Active highlight */
+    .note-item.active {
+      background-color: #a2d2ff;
+      border-color: #3498db;
+      transform: scale(1.1);
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 600px) {
+      .controls {
+        flex-direction: column;
+      }
+      .note-item {
+        margin: 2px auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Music Practice Tool</h1>
+
+  <div class="container">
+    <!-- ======== Top Controls ======== -->
+    <div class="controls">
+      <div class="control-group">
+        <label for="keySignature">Key Signature</label>
+        <select id="keySignature">
+          <option value="C">C Major</option>
+          <option value="D" selected>D Major</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="numNotes">Number of Notes</label>
+        <input type="number" id="numNotes" min="1" max="64" value="8" />
+      </div>
+      <div class="control-group">
+        <label for="bpm">BPM</label>
+        <input type="number" id="bpm" min="30" max="300" value="60" />
+      </div>
+      <div class="control-group">
+        <button class="btn" id="createNotesBtn">Create Note Rows</button>
+      </div>
+    </div>
+
+    <!-- ======== Notes Table ======== -->
+    <table id="notesTable" style="display: none;">
+      <thead>
+        <tr>
+          <th>Index</th>
+          <th>Pitch</th>
+          <th>Note Type</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <!-- ======== Start/Stop Controls ======== -->
+    <div class="controls">
+      <button class="btn" id="startBtn" disabled>Start</button>
+      <button class="btn" id="stopBtn" disabled>Stop</button>
+    </div>
+
+    <!-- ======== Notes Display ======== -->
+    <div class="notes-display">
+      <div class="notes-display-title">Note Sequence</div>
+    </div>
+  </div>
+
+  <!-- Predefined pitch list (for typed or selected pitches) -->
+  <datalist id="pitchOptions">
+    <option value="A" />
+    <option value="A#" />
+    <option value="B" />
+    <option value="C" />
+    <option value="C#" />
+    <option value="D" />
+    <option value="D#" />
+    <option value="E" />
+    <option value="F" />
+    <option value="F#" />
+    <option value="G" />
+    <option value="G#" />
+  </datalist>
+
+  <script>
+    /************************************************************
+     * GLOBALS
+     ************************************************************/
+    let audioContext = null;
+    let isPlaying = false;
+    let notesData = []; // { pitch, type, el }
+    let timeouts = [];  // store scheduled setTimeout references
+
+    // The canonical cello line for Canon in D (quarter notes)
+    const canonDCelloLine = ["D", "A", "B", "F#", "G", "D", "G", "A"];
+
+    /************************************************************
+     * UTILITY: getDurationInBeats
+     ************************************************************/
+    function getDurationInBeats(noteType) {
+      switch (noteType) {
+        case "whole":     return 4;
+        case "half":      return 2;
+        case "quarter":   return 1;
+        case "eighth":    return 0.5;
+        case "sixteenth": return 0.25;
+        default:          return 1;
+      }
+    }
+
+    /************************************************************
+     * UTILITY: getNoteDurationMs
+     ************************************************************/
+    function getNoteDurationMs(noteType, bpm) {
+      const beats = getDurationInBeats(noteType);
+      const msPerQuarter = (60 / bpm) * 1000;
+      return beats * msPerQuarter;
+    }
+
+    /************************************************************
+     * Metronome Click
+     ************************************************************/
+    function playClick() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.frequency.value = 1000; // pitch of click
+      osc.connect(gain);
+      gain.connect(audioContext.destination);
+
+      osc.start();
+      osc.stop(audioContext.currentTime + 0.05); // short beep
+    }
+
+    /************************************************************
+     * CREATE NOTE ROWS
+     * Uses Canon in D defaults if user leaves key = D and #notes=8
+     ************************************************************/
+    function createNoteRows() {
+      stopPractice(); // ensure nothing is running
+      notesData = [];
+
+      const table = document.getElementById("notesTable");
+      const tbody = table.querySelector("tbody");
+      tbody.innerHTML = "";
+      table.style.display = "none";
+
+      const key = document.getElementById("keySignature").value;
+      const numNotes = parseInt(document.getElementById("numNotes").value, 10) || 8;
+      const defaultKeyIsD = (key === "D");
+      const defaultNumIs8 = (numNotes === 8);
+
+      // Show the table
+      table.style.display = "table";
+
+      // If user keeps the defaults => fill with Canon in D quarter notes
+      if (defaultKeyIsD && defaultNumIs8) {
+        for (let i = 0; i < 8; i++) {
+          const row = document.createElement("tr");
+
+          // Index cell
+          const indexCell = document.createElement("td");
+          indexCell.textContent = i + 1;
+          row.appendChild(indexCell);
+
+          // Pitch cell => input + datalist
+          const pitchCell = document.createElement("td");
+          const pitchInput = document.createElement("input");
+          pitchInput.type = "text";
+          pitchInput.setAttribute("list", "pitchOptions");
+          pitchInput.value = canonDCelloLine[i];
+          pitchCell.appendChild(pitchInput);
+          row.appendChild(pitchCell);
+
+          // Note type cell
+          const typeCell = document.createElement("td");
+          const typeSelect = document.createElement("select");
+          ["whole", "half", "quarter", "eighth", "sixteenth"].forEach((t) => {
+            const opt = document.createElement("option");
+            opt.value = t;
+            opt.textContent = t[0].toUpperCase() + t.slice(1);
+            if (t === "quarter") opt.selected = true;
+            typeSelect.appendChild(opt);
+          });
+          typeCell.appendChild(typeSelect);
+          row.appendChild(typeCell);
+
+          tbody.appendChild(row);
+        }
+      } else {
+        // Otherwise just make empty rows with default "quarter"
+        for (let i = 0; i < numNotes; i++) {
+          const row = document.createElement("tr");
+
+          // Index
+          const indexCell = document.createElement("td");
+          indexCell.textContent = i + 1;
+          row.appendChild(indexCell);
+
+          // Pitch cell => input + datalist (empty by default)
+          const pitchCell = document.createElement("td");
+          const pitchInput = document.createElement("input");
+          pitchInput.type = "text";
+          pitchInput.setAttribute("list", "pitchOptions");
+          pitchInput.value = ""; // user can type or select
+          pitchCell.appendChild(pitchInput);
+          row.appendChild(pitchCell);
+
+          // Note type cell
+          const typeCell = document.createElement("td");
+          const typeSelect = document.createElement("select");
+          ["whole", "half", "quarter", "eighth", "sixteenth"].forEach((t) => {
+            const opt = document.createElement("option");
+            opt.value = t;
+            opt.textContent = t[0].toUpperCase() + t.slice(1);
+            if (t === "quarter") opt.selected = true;
+            typeSelect.appendChild(opt);
+          });
+          typeCell.appendChild(typeSelect);
+          row.appendChild(typeCell);
+
+          tbody.appendChild(row);
+        }
+      }
+
+      // Enable "Start" once user configures
+      document.getElementById("startBtn").disabled = false;
+    }
+
+    /************************************************************
+     * GATHER NOTES DATA & DISPLAY
+     ************************************************************/
+    function gatherNotesData() {
+      stopPractice(); // reset
+
+      const table = document.getElementById("notesTable");
+      if (table.style.display === "none") return;
+
+      const rows = table.querySelectorAll("tbody tr");
+      const displayArea = document.querySelector(".notes-display");
+      displayArea.innerHTML = '<div class="notes-display-title">Note Sequence</div>';
+
+      notesData = [];
+      rows.forEach((row, i) => {
+        const pitchInput = row.cells[1].querySelector("input[type='text']");
+        const typeSelect = row.cells[2].querySelector("select");
+
+        const pitch = pitchInput.value.trim();
+        const noteType = typeSelect.value;
+
+        // Create a visual element
+        const noteDiv = document.createElement("div");
+        noteDiv.classList.add("note-item", noteType);
+        noteDiv.textContent = pitch || "(?)";
+        // Index overlay
+        const idxSpan = document.createElement("span");
+        idxSpan.className = "note-index";
+        idxSpan.textContent = i + 1;
+        noteDiv.appendChild(idxSpan);
+
+        displayArea.appendChild(noteDiv);
+
+        notesData.push({
+          pitch: pitch,
+          type: noteType,
+          el: noteDiv
+        });
+      });
+    }
+
+    /************************************************************
+     * START PRACTICE
+     * Loops indefinitely until user stops.
+     ************************************************************/
+    function startPractice() {
+      if (notesData.length === 0) return;
+      isPlaying = true;
+
+      document.getElementById("startBtn").disabled = true;
+      document.getElementById("stopBtn").disabled = false;
+
+      // Clear highlight/timeouts
+      timeouts.forEach((t) => clearTimeout(t));
+      timeouts = [];
+      notesData.forEach((nd) => nd.el.classList.remove("active"));
+
+      scheduleNextNote(0);
+    }
+
+    function scheduleNextNote(index) {
+      if (!isPlaying) return;
+
+      const bpm = parseInt(document.getElementById("bpm").value, 10) || 60;
+      const noteInfo = notesData[index];
+      const noteDurationMs = getNoteDurationMs(noteInfo.type, bpm);
+
+      // Highlight the current note
+      highlightNote(noteInfo.el);
+      playClick();
+
+      // Unhighlight after some fraction of that duration
+      const unhighlightTimeout = setTimeout(() => {
+        unhighlightNote(noteInfo.el);
+      }, noteDurationMs * 0.8);
+
+      // Move to the next note (loop) after the full duration
+      const nextIndex = (index + 1) % notesData.length;
+      const nextTimeout = setTimeout(() => {
+        scheduleNextNote(nextIndex);
+      }, noteDurationMs);
+
+      timeouts.push(unhighlightTimeout, nextTimeout);
+    }
+
+    function highlightNote(el) {
+      el.classList.add("active");
+    }
+    function unhighlightNote(el) {
+      el.classList.remove("active");
+    }
+
+    /************************************************************
+     * STOP PRACTICE
+     ************************************************************/
+    function stopPractice() {
+      isPlaying = false;
+      document.getElementById("startBtn").disabled = false;
+      document.getElementById("stopBtn").disabled = true;
+
+      // Clear timeouts
+      timeouts.forEach((t) => clearTimeout(t));
+      timeouts = [];
+      notesData.forEach((nd) => nd.el.classList.remove("active"));
+    }
+
+    /************************************************************
+     * EVENT LISTENERS
+     ************************************************************/
+    document.getElementById("createNotesBtn").addEventListener("click", createNoteRows);
+
+    document.getElementById("startBtn").addEventListener("click", () => {
+      gatherNotesData();
+      if (notesData.length === 0) return;
+      startPractice();
+    });
+
+    document.getElementById("stopBtn").addEventListener("click", stopPractice);
+  </script>
+</body>
+</html>
