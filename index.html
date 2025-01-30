@@ -468,7 +468,7 @@
 
       // Create 8 blocks (Canon in D) all quarter notes by default
       for (let i = 0; i < 8; i++) {
-        addNoteBlock(defaultNotes[i], "quarter");
+        addNoteBlock(defaultNotes[i], "half");
       }
 
       // Create the + button
@@ -477,7 +477,7 @@
       addBtn.innerHTML = "+";
       addBtn.title = "Add new note";
       addBtn.addEventListener("click", () => {
-        addNoteBlock("C", "quarter");
+        addNoteBlock("C", "half");
       });
       notesContainer.appendChild(addBtn);
 
